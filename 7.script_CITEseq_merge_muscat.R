@@ -357,6 +357,167 @@ for (i in 1:length(listCells)) {
 }
 
 
+######################################
+
+## Extra 2025: create specific heatmap for paper!!
+
+## EM cDC1s + LM cDC1s
+## Subset average seuratobject 
+seuratObj_average_subset<-subset(seuratObj_average, idents = levels(Idents(seuratObj_average))[c(31:42)])
+
+## Subset DEG list without Rps/Rpl genes
+Paper_genelist_Mature<-c("Ggta1","Nabp1","Bcl2l11","Nfkbia","Bcl2l14","Ccr7","Cblb","Papss2","Tnfrsf4",
+                         "Mxd1","Traf1","Clec2i","Irf1","Marcksl1","Asprv1","Snn","Rras2","Rasip1","Tmem176a",
+                         "Dennd3","Tmem39a","Bcl3","Il2rg","Il4ra","Slc2a6","Ccl22","Ldlr","Kcnk6","Lamp1","Gbp8",
+                         "Zfp36l1","St8sia6","Chka","Slco5a1","Rasal2","Mical3","Mmp23","Eno3","Sqle","Cyp51","Creld1",
+                         "Ccr7","Fscn1","Tmem176a","Tmem176b","Slco5a1","Nudt17","Apol7c","Apoe",
+                         "Apol10b","Abcg1","Il4i1","Mical3","H2-M2","Dnase1l3")
+
+## Heatmap mature cDC1s
+# Colset<-c(rep('royalblue',3),
+#           rep('firebrick',3))
+Colset<-rep(brewer.pal(n = 6, name = "Set3"), each = 6)
+Colset_Mature<-Colset[-c(1:24)] 
+H1 <- DoHeatmap(seuratObj_average_subset, assay = "SCT", #cells = levels(Idents(seuratObj_average))[c(1:6)],
+                features = Paper_genelist_Mature, size = 3,
+                draw.lines = FALSE, group.colors = Colset_Mature,disp.min = -2.5, disp.max = 2.5) + 
+  # scale_color_manual(values = Colset_EM) +
+  scale_fill_gradient2( low = rev(c('#d1e5f0','#67a9cf','#2166ac')),
+                        mid = "white", high = rev(c('#b2182b','#ef8a62','#fddbc7')),
+                        midpoint = 0, guide = "colourbar", aesthetics = "fill")
+
+pdf(file=paste0(sampleFolder,"results_merge_non_harmony/Muscat/Seurat_heatmaps/Average_expression_heatmap_Seurat_paper_DESeq2_Maturation_genes_EM_and_LM_",sampleName,".pdf"), width = 12, height = 15)
+print(H1)
+dev.off()
+
+## Heatmap all cDC1s
+Colset<-rep(brewer.pal(n = 7, name = "Set3"), each = 6)
+Colset_All<-Colset[c(1:24,37:42,25:36)] 
+H1 <- DoHeatmap(seuratObj_average, assay = "SCT", #cells = levels(Idents(seuratObj_average))[c(1:6)],
+                features = Paper_genelist_Mature, size = 3,
+                draw.lines = FALSE, group.colors = Colset_All,disp.min = -2.5, disp.max = 2.5) + 
+  # scale_color_manual(values = Colset_EM) +
+  scale_fill_gradient2( low = rev(c('#d1e5f0','#67a9cf','#2166ac')),
+                        mid = "white", high = rev(c('#b2182b','#ef8a62','#fddbc7')),
+                        midpoint = 0, guide = "colourbar", aesthetics = "fill")
+
+pdf(file=paste0(sampleFolder,"results_merge_non_harmony/Muscat/Seurat_heatmaps/Average_expression_heatmap_Seurat_paper_DESeq2_Maturation_genes_all_cDC1s_",sampleName,".pdf"), width = 20, height = 15)
+print(H1)
+dev.off()
+
+## ComplexHeatmap
+library(ComplexHeatmap)
+features <- unique(Paper_genelist_Mature)
+
+## Update genelist: split in DEG and non-DEG!!!
+DEG_features<-unique(c(intersect(features,tbl_fil_clint_relaxed_v2$`Late mature cDC1s`$gene),
+                       intersect(features,tbl_fil_clint_relaxed_v2$`Early mature cDC1s`$gene))) 
+nonDEG_features<-setdiff(features,DEG_features)
+
+# Extract the expression data for the selected genes from the scaled layer
+expr_matrix <- as.matrix(
+  GetAssayData(
+    seuratObj_average, 
+    slot = "scale.data", 
+    assay = "SCT"
+  )[
+    c(nonDEG_features,DEG_features), #features
+  ]
+)
+
+# Prepare cell type annotations
+cell_types <- Idents(seuratObj_average)
+# Create vector with unique and sorted cell types
+unique_cell_types <- levels(cell_types)
+
+## Add genotype info
+seuratObj_average@meta.data$Genotype<-c(rep("WT",3),rep("DKO",3))
+seuratObj_average@meta.data$Genotype<-factor(seuratObj_average@meta.data$Genotype, levels = c("WT","DKO"))
+
+# Create color palette for cell types
+cell_type_colors <- setNames(
+  Colset_All,
+  unique_cell_types
+)
+
+# Create color palette for cell types
+Genotype_colors <- setNames(
+  rep(c(rep("#E5E5E5",3),rep("#EC672A",3)),7),
+  seuratObj_average@meta.data$Genotype
+)
+
+# Recreate the Seurat expression scale
+palette_expression_level = circlize::colorRamp2(
+  c(min(expr_matrix), median(expr_matrix), min(2.5, max(expr_matrix))),
+  c("#2166ac", "white", '#b2182b'))
+
+# Create the heatmap with ComplexHeatmap
+ht = Heatmap(
+  matrix = expr_matrix,
+  row_order = c(nonDEG_features,DEG_features), #features,
+  name = "expression",
+  column_split = factor(cell_types, levels = unique_cell_types),
+  row_split = c(rep("1.non-DEG",30), rep("2. DEG",21)),
+  # Do not cluster rows or columns otherwise row_order/column_order are ignored
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  show_column_names = FALSE,
+  show_column_dend = FALSE,
+  show_row_names = TRUE,
+  show_row_dend = FALSE,
+  cluster_column_slices = TRUE,
+  column_gap = unit(0.5, "mm"),
+  # column_names_rot = 45,
+  # column_names_side = "top",
+  column_names_max_height = unit(5, "cm"),
+  row_names_gp = gpar(fontsize = 5),
+  # The column title can be either a title for all the columns
+  # or a vector with a name for every column
+  column_title = unique_cell_types,
+  column_title_gp = gpar(fontsize = 2),
+  column_title_rot = 90,
+  # Add the annotation bars on top
+  top_annotation = HeatmapAnnotation(
+    # Give a name to the annotation, not used on the actual plot
+    name = "Clusters",
+    # Annotate the columns
+    which = "column",
+    # First annotation - clusters
+    cluster = cell_types,
+    # Second annotation - patients
+    genotype = seuratObj_average@meta.data$Genotype,
+    # Color palettes
+    col = list(cluster = cell_type_colors, genotype = Genotype_colors),
+    show_legend = c(FALSE, TRUE),
+    gap = unit(1, "mm"),
+    simple_anno_size = unit(2, "mm"),
+    annotation_name_gp = gpar(fontsize = 6)
+  ),
+  # Color scale for expression
+  col = palette_expression_level,
+  # Otherwise you get random vertical white lines where there should not be any
+  use_raster = FALSE
+)
+# Put the legends on the right in a single column
+pdf(file=paste0(sampleFolder,"results_merge_non_harmony/Muscat/Seurat_heatmaps/Complexheatmap_paper_DESeq2_Maturation_genes_all_cDC1s_updated",sampleName,".pdf"), width = 10, height = 8)
+draw(ht, merge_legend = TRUE)
+dev.off()
+
+## Compare results bulk and CITEseq logFC
+Bulk_results<-read.xlsx("/home/clintdn/VIB/DATA/Sophie/RNA-seq_Simon/results/triwiseResults/summary_allgenes_clint.xlsx", sheet = "Ire1KO_vs_WT")
+Pseudobulk_DEG_results<-tbl_fil_clint_relaxed_v2$`Late mature cDC1s`
+Pseudobulk_results<-res$table$`DKO-WT`$`Late mature cDC1s`
+
+rownames(Bulk_results)<-Bulk_results$gene
+rownames(Pseudobulk_results)<-Pseudobulk_results$gene
+
+Bulk_results[c(nonDEG_features,DEG_features),c(7,1,2,5)]
+Pseudobulk_results[c(nonDEG_features,DEG_features),c(2,3,4,8)]
+
+write.xlsx(cbind(Bulk_results[c(nonDEG_features,DEG_features),c(7,1,2,5)],
+                 Pseudobulk_results[c(nonDEG_features,DEG_features),c(2,3,4,8)]),
+           paste0(sampleFolder,"results_merge_non_harmony/Muscat/Seurat_heatmaps/Complexheatmap_paper_DESeq2_Maturation_genes_all_cDC1s_updated",sampleName,".xlsx"))
+
 ########################################################################################################
 ########################################################################################################
 

@@ -2105,49 +2105,22 @@ write.xlsx(big_data3, "../results/triwiseResults/Expression_adjusted_genelists.x
 
 ###Get genelistname
 genelistname <- "adjustedAmiGOcholesterolv3"
-# genelistname <- "AmiGO combo"
 genelistname <- "adjustedXBP1"
 genelistname <- "DCmaturationHomeo"
-genelistname <- "DCmaturationCommonNew"
-genelistname <- "engulfmentGenes"
+genelistname <- "DCmaturationCommon"
 genelistname <- "RIDDmerge"
-genelistname <- "IsrAtf"
-# genelistname <- "ATF6"
-genelistname <- "lipidGenes"
-genelistname <- "DCmaturationMerge"
 genelistname <- "Isr"
-genelistname <- "Apoptotic_clearance"
 
 
 ### Get genes
-#wantedGenes<-rownames(matrixAllDE[intersect(Xbp1Genes_v1, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(adjustedXBP1, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(IsrAtf, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-#wantedGenes<-rownames(matrixAllDE[intersect(IsrAtf, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),]) %>% tail(.,20)
-wantedGenes<-rownames(matrixAllDE[intersect(riddHan, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(riddMerge, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(cholesterolGenes, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-# wantedGenes<-intersect(adjustedCholesterol,rownames(expTable)) Why with exptable: to include non diff exp genes!!
-wantedGenes<-rownames(matrixAllDE[intersect(adjustedCholesterol, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-# wantedGenes<-rownames(matrixAllDE[intersect(Amigo_chol_genes_known, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 wantedGenes<-rownames(matrixAllDE[intersect(adjustedAmiGOChol, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-# wantedGenes<-intersect(AmiGO_combo,rownames(expTable))
-# wantedGenes<-rownames(matrixAllDE[intersect(DCmaturationHomeo, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
+wantedGenes<-rownames(matrixAllDE[intersect(adjustedXBP1, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 wantedGenes<-rownames(matrixAllDE[intersect(adjustedDCmaturationHomeo, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 wantedGenes<-rownames(matrixAllDE[intersect(DCmaturationCommon, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 wantedGenes<-rownames(matrixAllDE[intersect(DCmaturationCommon, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),]) %>% tail(.,30)
-wantedGenes<-rownames(matrixAllDE[intersect(DCmaturationCommonNew, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(DCmaturationCommonNew, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),]) %>% tail(.,35)
-# wantedGenes<-engulfmentGenes
-wantedGenes<-rownames(matrixAllDE[intersect(engulfmentGenes, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(biosyntheseGenes, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(atf6, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(cholesterolGenesAll, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
+wantedGenes<-rownames(matrixAllDE[intersect(riddMerge, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 wantedGenes<-rownames(matrixAllDE[intersect(Isr, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 wantedGenes<-rownames(matrixAllDE[intersect(Isr, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),]) %>% tail(.,30)
-wantedGenes<-rownames(matrixAllDE[intersect(lipidGenes, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(DCmaturationMerge, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
-wantedGenes<-rownames(matrixAllDE[intersect(Apop_cell_clearance_genes, Gdiffexp),] %>% .[order(.$adj.P.Val, decreasing = T),])
 
 ### Get samples
 colsWT<-c(grep("WT",colnames(expTable)), grep("fl_fl",colnames(expTable)))
@@ -2248,23 +2221,3 @@ ggsave(p,file=paste0("/home/clintdn/VIB/DATA/Sophie/RNA-seq_Simon/results/heatma
 cairo_pdf(file=paste0("/home/clintdn/VIB/DATA/Sophie/RNA-seq_Simon/results/heatmaps/Final_paper_Simon/",genelistname,"_rosePlot.pdf"))
 plotRoseplot(barycoords, Gdiffexp, Goi=DCmaturationCommonNew, showlabels = F) ##Use genelist before intersect (but not necessary)!
 dev.off()
-
-##Triwise plot (mixed colors) 
-# p<-plotDotplot(theBarycoords, Gdiffexp=allDEgenes, showlabels = F, Goi=list(Set1=triwiseSet1,Set2=triwiseSet2,Set3=triwiseSet3,Set4=triwiseSet4,
-#                                                                             Set5=triwiseSet5,Set6=triwiseSet6,Set7=triwiseSet7), colorvalues=wantedColors7) +
-#   theme(legend.position = "none") + 
-#   geom_point(size = 20)
-# print(p)
-# ggsave(p,file=paste0("C:/DATA/RNA-seq_Simon/results/heatmaps/Final/triwisePlot_withColors_",genelistname,".png"),dpi=300)
-# 
-# myList<-list("set1"=triwiseSet1,"set2"=triwiseSet2,"set3"=triwiseSet3,"set4"=triwiseSet4,"set5"=triwiseSet5,"set6"=triwiseSet6,"set7"=triwiseSet7)
-# saveRDS(myList,file=paste0("../results/heatmaps/Final/listGenes_coloredTriwise_",genelistname,".rds"))
-
-# # Code Jana
-# cairo_pdf(file=paste0("/home/clintdn/VIB/DATA/Sophie/RNA-seq_Simon/results/heatmaps/Final_paper_Simon/Extra_4_base_annotated.pdf"))
-# plotDotplot(barycoords, Gdiffexp, Goi=wantedGenes,showlabels = F) +
-#   geom_text_repel(barycoords[wantedGenes,],
-#                   mapping=aes(label=wantedGenes, x=barycoords[wantedGenes,1], y=barycoords[wantedGenes,2]),
-#                   force = 3, size=5,segment.alpha=0.5, colour="red", arrow = arrow(length = unit(0.02, "npc")),
-#                   box.padding = 1)
-# dev.off()

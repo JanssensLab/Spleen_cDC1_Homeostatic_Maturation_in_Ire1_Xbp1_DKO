@@ -375,6 +375,42 @@ p<-interactiveDotplot(expTable_mean, Gdiffexp=allDEgenes, plotLocalEnrichment=FA
 print(p)
 saveWidget(p,file="/home/clintdn/VIB/DATA/Sophie/RNA-seq_Simon/cDC2_analysis_Clint/interactiveTriwisePlot.html") ##needs full path!
 
+#############
+
+## Mew version for paper
+genelist<-allDEgenes
+
+p <- plotDotplot(theBarycoords, Gdiffexp = allDEgenes, Goi= genelist, rmax = 5,showlabels = F) 
+
+p <- p + scale_y_continuous(expand = expansion(mult = 0.2)) + scale_x_continuous(expand = expansion(mult = 0.2))   #change scaling
+
+#MARK GENES ON PLOT
+
+# FROM FIND MAKERS
+NegXBarycoords <- subset(theBarycoords[intersect(unlist(genelist),allDEgenes),],
+                         theBarycoords[intersect(unlist(genelist),allDEgenes),1]< -1)
+PosXBarycoords <- subset(theBarycoords[intersect(unlist(genelist),allDEgenes),],
+                         theBarycoords[intersect(unlist(genelist),allDEgenes),1]> -1)
+
+p <- p + #size increased to 6 april/2024
+  geom_text_repel(NegXBarycoords[], 
+                  mapping=aes(label=rownames(NegXBarycoords), x=NegXBarycoords[,1], y=NegXBarycoords[,2]), 
+                  force = 1, size=6, segment.alpha=0.5, segment.colour = '#999999',
+                  nudge_x = (0-NegXBarycoords[,1]-7),
+                  box.padding =0.25) +
+  geom_text_repel(PosXBarycoords[,], 
+                  mapping=aes(label=rownames(PosXBarycoords), x=PosXBarycoords[,1], y=PosXBarycoords[,2]), 
+                  force = 1, size=6, segment.alpha=0.5, segment.colour = '#999999',
+                  nudge_x = (0-PosXBarycoords[,1]+7),
+                  box.padding =0.25)  
+print(p)
+
+pdf("../cDC2_analysis_Clint/triwisePlot_cDC2s_paper_allDEG_lower_rmax.pdf", width = 12, height = 12)
+print(p)
+dev.off()
+
+#############
+
 ###Seperate the DE genes of the different comparisons
 #set1 (red)=DE genes only present in Xbp1 KO vs WT
 #set2 (green)=DE genes only present in Ire1 KO vs WT
